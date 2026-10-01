@@ -123,4 +123,45 @@ describe("groupAlerts", () => {
       });
     });
   });
+
+  describe("with a package with more severe alerts but fewer in total", () => {
+    let result: PackageGroup[];
+
+    beforeEach(() => {
+      result = groupAlerts([
+        alert(1, "npm", "lodash", "high"),
+        alert(2, "npm", "lodash", "high"),
+        alert(3, "npm", "lodash", "high"),
+        alert(4, "npm", "axios", "critical"),
+      ]);
+    });
+
+    it("puts the more severe package first", () => {
+      assert.deepEqual(
+        result.map((group) => group.name),
+        ["axios", "lodash"],
+      );
+    });
+  });
+
+  describe("with packages sharing their most severe level", () => {
+    let result: PackageGroup[];
+
+    beforeEach(() => {
+      result = groupAlerts([
+        alert(1, "npm", "lodash", "high"),
+        alert(2, "npm", "lodash", "low"),
+        alert(3, "npm", "lodash", "low"),
+        alert(4, "npm", "axios", "high"),
+        alert(5, "npm", "axios", "high"),
+      ]);
+    });
+
+    it("puts the package with more alerts at that level first", () => {
+      assert.deepEqual(
+        result.map((group) => group.name),
+        ["axios", "lodash"],
+      );
+    });
+  });
 });

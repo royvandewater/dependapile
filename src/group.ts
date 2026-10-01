@@ -20,6 +20,14 @@ export type PackageGroup = {
 const isSeverity = (value: string): value is Severity =>
   (SEVERITIES as readonly string[]).includes(value);
 
+const compareGroups = (a: PackageGroup, b: PackageGroup): number => {
+  for (const severity of SEVERITIES) {
+    const difference = b.severities[severity] - a.severities[severity];
+    if (difference !== 0) return difference;
+  }
+  return 0;
+};
+
 export const groupAlerts = (alerts: Alert[]): PackageGroup[] => {
   const groups = new Map<string, PackageGroup>();
   for (const alert of alerts) {
@@ -37,5 +45,5 @@ export const groupAlerts = (alerts: Alert[]): PackageGroup[] => {
     group.severities[severity] += 1;
     groups.set(key, group);
   }
-  return [...groups.values()].sort((a, b) => b.urls.length - a.urls.length);
+  return [...groups.values()].sort(compareGroups);
 };
