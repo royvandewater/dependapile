@@ -15,12 +15,20 @@ describe("renderReport", () => {
             "https://github.com/o/a/security/dependabot/1",
             "https://github.com/o/b/security/dependabot/2",
           ],
+          severities: { critical: 1, high: 0, medium: 0, low: 1 },
         },
       ]);
     });
 
     it("includes the package name", () => {
       assert.match(html, /lodash/);
+    });
+
+    it("includes the count of each severity", () => {
+      assert.match(html, /\b1 critical\b/);
+      assert.match(html, /\b0 high\b/);
+      assert.match(html, /\b0 medium\b/);
+      assert.match(html, /\b1 low\b/);
     });
 
     it("includes the alert count", () => {
@@ -45,7 +53,9 @@ describe("renderReport", () => {
 
     beforeEach(() => {
       html = renderReport("acme", [
-        { ecosystem: "npm", name: "<script>", urls: ["https://x/1"] },
+        { ecosystem: "npm", name: "<script>", urls: ["https://x/1"],
+          severities: { critical: 0, high: 0, medium: 0, low: 1 },
+        },
       ]);
     });
 

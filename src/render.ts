@@ -1,4 +1,4 @@
-import type { PackageGroup } from "./group.ts";
+import { SEVERITIES, type PackageGroup } from "./group.ts";
 
 const escapeHtml = (value: string): string =>
   value
@@ -10,12 +10,20 @@ const escapeHtml = (value: string): string =>
 const pluralize = (count: number): string =>
   count === 1 ? "1 alert" : `${count} alerts`;
 
+const renderSeverities = (group: PackageGroup): string =>
+  SEVERITIES.map((severity) => {
+    const count = group.severities[severity];
+    const empty = count === 0 ? " empty" : "";
+    return `<span class="severity ${severity}${empty}">${count} ${severity}</span>`;
+  }).join("");
+
 const renderGroup = (group: PackageGroup, index: number): string => `
     <li class="group">
       <div class="info">
         <span class="name">${escapeHtml(group.name)}</span>
         <span class="ecosystem">${escapeHtml(group.ecosystem)}</span>
         <span class="count">${pluralize(group.urls.length)}</span>
+        <span class="severities">${renderSeverities(group)}</span>
       </div>
       <button type="button" data-target="urls-${index}">Copy URLs</button>
       <pre id="urls-${index}" hidden>${escapeHtml(group.urls.join("\n"))}</pre>
@@ -30,9 +38,9 @@ export const renderReport = (org: string, groups: PackageGroup[]): string => {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dependabot Alerts</title>
   <style>
-    :root { --bg: #fafafa; --fg: #1a1a1a; --muted: #666; --card: #fff; --border: #e2e2e2; --accent: #0969da; --accent-fg: #fff; }
+    :root { --bg: #fafafa; --fg: #1a1a1a; --muted: #666; --card: #fff; --border: #e2e2e2; --accent: #0969da; --accent-fg: #fff; --critical: #b3261e; --critical-bg: #fde7e5; --high: #a8470a; --high-bg: #fdebdc; --medium: #7a5c00; --medium-bg: #fbf1cc; --low: #555; --low-bg: #ececec; }
     @media (prefers-color-scheme: dark) {
-      :root { --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e; --card: #161b22; --border: #30363d; --accent: #2f81f7; --accent-fg: #fff; }
+      :root { --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e; --card: #161b22; --border: #30363d; --accent: #2f81f7; --accent-fg: #fff; --critical: #ff8a80; --critical-bg: #3d1614; --high: #ffb27a; --high-bg: #3a2312; --medium: #e8c95a; --medium-bg: #332a0c; --low: #b1b8c0; --low-bg: #262c33; }
     }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 32px 16px; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
@@ -44,6 +52,13 @@ export const renderReport = (org: string, groups: PackageGroup[]): string => {
     .info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0; }
     .name { font-family: ui-monospace, monospace; font-weight: 600; overflow-wrap: anywhere; }
     .ecosystem, .count { color: var(--muted); font-size: 13px; }
+    .severities { display: flex; flex-wrap: wrap; gap: 4px; flex-basis: 100%; }
+    .severity { padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .severity.empty { opacity: 0.35; }
+    .critical { color: var(--critical); background: var(--critical-bg); }
+    .high { color: var(--high); background: var(--high-bg); }
+    .medium { color: var(--medium); background: var(--medium-bg); }
+    .low { color: var(--low); background: var(--low-bg); }
     button { flex-shrink: 0; padding: 6px 12px; border: 0; border-radius: 6px; background: var(--accent); color: var(--accent-fg); font: inherit; font-size: 13px; cursor: pointer; }
     button.copied { opacity: 0.7; }
   </style>
