@@ -101,4 +101,26 @@ describe("groupAlerts", () => {
       assert.equal(result.length, 1);
     });
   });
+
+  describe("with alerts of mixed severity for one package", () => {
+    let result: PackageGroup[];
+
+    beforeEach(() => {
+      result = groupAlerts([
+        alert(1, "npm", "lodash", "critical"),
+        alert(2, "npm", "lodash", "high"),
+        alert(3, "npm", "lodash", "high"),
+        alert(4, "npm", "lodash", "low"),
+      ]);
+    });
+
+    it("counts alerts by severity", () => {
+      assert.deepEqual(result[0].severities, {
+        critical: 1,
+        high: 2,
+        medium: 0,
+        low: 1,
+      });
+    });
+  });
 });
