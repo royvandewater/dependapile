@@ -1,0 +1,10 @@
+{
+  "name": "dependapile",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test 'src/**/*.test.ts'"
+  }
+}
