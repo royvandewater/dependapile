@@ -38,4 +38,33 @@ describe("createReportServer", () => {
       assert.match(body, /1 alert\b/);
     });
   });
+
+  describe("when another path is requested", () => {
+    let server: Server;
+    let fetched: boolean;
+    let response: Response;
+
+    beforeEach(async () => {
+      fetched = false;
+      server = createReportServer("acme", async () => {
+        fetched = true;
+        return [];
+      });
+      await new Promise<void>((resolve) => server.listen(0, resolve));
+      const { port } = server.address() as AddressInfo;
+      response = await fetch(`http://localhost:${port}/favicon.ico`);
+    });
+
+    afterEach(() => {
+      server.close();
+    });
+
+    it("responds with 404", () => {
+      assert.equal(response.status, 404);
+    });
+
+    it("does not fetch alerts", () => {
+      assert.equal(fetched, false);
+    });
+  });
 });

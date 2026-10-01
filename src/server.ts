@@ -6,7 +6,12 @@ export const createReportServer = (
   org: string,
   fetchAlerts: (org: string) => Promise<Alert[]>,
 ): Server =>
-  createServer(async (_request, response) => {
+  createServer(async (request, response) => {
+    if (request.url !== "/") {
+      response.writeHead(404);
+      response.end();
+      return;
+    }
     const html = renderReport(org, groupAlerts(await fetchAlerts(org)));
     response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
     response.end(html);
