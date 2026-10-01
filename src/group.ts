@@ -10,7 +10,13 @@ export type PackageGroup = {
 };
 
 export const groupAlerts = (alerts: Alert[]): PackageGroup[] => {
-  if (alerts.length === 0) return [];
-  const { ecosystem, name } = alerts[0].dependency.package;
-  return [{ ecosystem, name, urls: alerts.map((alert) => alert.html_url) }];
+  const groups = new Map<string, PackageGroup>();
+  for (const alert of alerts) {
+    const { ecosystem, name } = alert.dependency.package;
+    const key = `${ecosystem}:${name}`;
+    const group = groups.get(key) ?? { ecosystem, name, urls: [] };
+    group.urls.push(alert.html_url);
+    groups.set(key, group);
+  }
+  return [...groups.values()].sort((a, b) => b.urls.length - a.urls.length);
 };

@@ -44,4 +44,64 @@ describe("groupAlerts", () => {
       ]);
     });
   });
+
+  describe("with alerts for different packages", () => {
+    let result: PackageGroup[];
+
+    beforeEach(() => {
+      result = groupAlerts([
+        {
+          html_url: "https://github.com/o/a/security/dependabot/1",
+          dependency: { package: { ecosystem: "npm", name: "lodash" } },
+        },
+        {
+          html_url: "https://github.com/o/a/security/dependabot/2",
+          dependency: { package: { ecosystem: "pip", name: "django" } },
+        },
+        {
+          html_url: "https://github.com/o/b/security/dependabot/3",
+          dependency: { package: { ecosystem: "pip", name: "django" } },
+        },
+      ]);
+    });
+
+    it("returns a group per package, most alerts first", () => {
+      assert.deepEqual(result, [
+        {
+          ecosystem: "pip",
+          name: "django",
+          urls: [
+            "https://github.com/o/a/security/dependabot/2",
+            "https://github.com/o/b/security/dependabot/3",
+          ],
+        },
+        {
+          ecosystem: "npm",
+          name: "lodash",
+          urls: ["https://github.com/o/a/security/dependabot/1"],
+        },
+      ]);
+    });
+  });
+
+  describe("with same package name in different ecosystems", () => {
+    let result: PackageGroup[];
+
+    beforeEach(() => {
+      result = groupAlerts([
+        {
+          html_url: "https://github.com/o/a/security/dependabot/1",
+          dependency: { package: { ecosystem: "npm", name: "requests" } },
+        },
+        {
+          html_url: "https://github.com/o/a/security/dependabot/2",
+          dependency: { package: { ecosystem: "pip", name: "requests" } },
+        },
+      ]);
+    });
+
+    it("keeps them separate", () => {
+      assert.equal(result.length, 2);
+    });
+  });
 });
