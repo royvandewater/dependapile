@@ -13,7 +13,7 @@ export const groupAlerts = (alerts: Alert[]): PackageGroup[] => {
   const groups = new Map<string, PackageGroup>();
   for (const alert of alerts) {
     const { ecosystem, name } = alert.dependency.package;
-    const key = `${ecosystem}:${name}`;
+    const key = `${ecosystem}:${name.toLowerCase()}`;
     const group = groups.get(key) ?? { ecosystem, name, urls: [] };
     group.urls.push(alert.html_url);
     groups.set(key, group);

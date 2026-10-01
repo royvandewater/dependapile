@@ -104,4 +104,25 @@ describe("groupAlerts", () => {
       assert.equal(result.length, 2);
     });
   });
+
+  describe("with package names differing only by case", () => {
+    let result: PackageGroup[];
+
+    beforeEach(() => {
+      result = groupAlerts([
+        {
+          html_url: "https://github.com/o/a/security/dependabot/1",
+          dependency: { package: { ecosystem: "pip", name: "GitPython" } },
+        },
+        {
+          html_url: "https://github.com/o/b/security/dependabot/2",
+          dependency: { package: { ecosystem: "pip", name: "gitpython" } },
+        },
+      ]);
+    });
+
+    it("groups them together", () => {
+      assert.equal(result.length, 1);
+    });
+  });
 });
