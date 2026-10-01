@@ -1,6 +1,7 @@
 export type Alert = {
   html_url: string;
   dependency: { package: { ecosystem: string; name: string } };
+  security_advisory: { severity: string };
 };
 
 export type PackageGroup = {

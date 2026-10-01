@@ -15,6 +15,7 @@ describe("createReportServer", () => {
         {
           html_url: "https://github.com/o/a/security/dependabot/1",
           dependency: { package: { ecosystem: "npm", name: "lodash" } },
+          security_advisory: { severity: "low" },
         },
       ]);
       await new Promise<void>((resolve) => server.listen(0, resolve));

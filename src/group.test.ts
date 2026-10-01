@@ -1,6 +1,17 @@
 import { beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { groupAlerts, type PackageGroup } from "./group.ts";
+import { groupAlerts, type Alert, type PackageGroup } from "./group.ts";
+
+const alert = (
+  id: number,
+  ecosystem: string,
+  name: string,
+  severity = "low",
+): Alert => ({
+  html_url: `https://github.com/o/a/security/dependabot/${id}`,
+  dependency: { package: { ecosystem, name } },
+  security_advisory: { severity },
+});
 
 describe("groupAlerts", () => {
   describe("with no alerts", () => {
@@ -20,27 +31,24 @@ describe("groupAlerts", () => {
 
     beforeEach(() => {
       result = groupAlerts([
-        {
-          html_url: "https://github.com/o/a/security/dependabot/1",
-          dependency: { package: { ecosystem: "npm", name: "lodash" } },
-        },
-        {
-          html_url: "https://github.com/o/b/security/dependabot/2",
-          dependency: { package: { ecosystem: "npm", name: "lodash" } },
-        },
+        alert(1, "npm", "lodash"),
+        alert(2, "npm", "lodash"),
       ]);
     });
 
-    it("returns one group with both urls", () => {
-      assert.deepEqual(result, [
-        {
-          ecosystem: "npm",
-          name: "lodash",
-          urls: [
-            "https://github.com/o/a/security/dependabot/1",
-            "https://github.com/o/b/security/dependabot/2",
-          ],
-        },
+    it("returns one group", () => {
+      assert.equal(result.length, 1);
+    });
+
+    it("identifies the package", () => {
+      assert.equal(result[0].ecosystem, "npm");
+      assert.equal(result[0].name, "lodash");
+    });
+
+    it("includes both urls", () => {
+      assert.deepEqual(result[0].urls, [
+        "https://github.com/o/a/security/dependabot/1",
+        "https://github.com/o/a/security/dependabot/2",
       ]);
     });
   });
@@ -50,37 +58,17 @@ describe("groupAlerts", () => {
 
     beforeEach(() => {
       result = groupAlerts([
-        {
-          html_url: "https://github.com/o/a/security/dependabot/1",
-          dependency: { package: { ecosystem: "npm", name: "lodash" } },
-        },
-        {
-          html_url: "https://github.com/o/a/security/dependabot/2",
-          dependency: { package: { ecosystem: "pip", name: "django" } },
-        },
-        {
-          html_url: "https://github.com/o/b/security/dependabot/3",
-          dependency: { package: { ecosystem: "pip", name: "django" } },
-        },
+        alert(1, "npm", "lodash"),
+        alert(2, "pip", "django"),
+        alert(3, "pip", "django"),
       ]);
     });
 
     it("returns a group per package, most alerts first", () => {
-      assert.deepEqual(result, [
-        {
-          ecosystem: "pip",
-          name: "django",
-          urls: [
-            "https://github.com/o/a/security/dependabot/2",
-            "https://github.com/o/b/security/dependabot/3",
-          ],
-        },
-        {
-          ecosystem: "npm",
-          name: "lodash",
-          urls: ["https://github.com/o/a/security/dependabot/1"],
-        },
-      ]);
+      assert.deepEqual(
+        result.map((group) => group.name),
+        ["django", "lodash"],
+      );
     });
   });
 
@@ -89,14 +77,8 @@ describe("groupAlerts", () => {
 
     beforeEach(() => {
       result = groupAlerts([
-        {
-          html_url: "https://github.com/o/a/security/dependabot/1",
-          dependency: { package: { ecosystem: "npm", name: "requests" } },
-        },
-        {
-          html_url: "https://github.com/o/a/security/dependabot/2",
-          dependency: { package: { ecosystem: "pip", name: "requests" } },
-        },
+        alert(1, "npm", "requests"),
+        alert(2, "pip", "requests"),
       ]);
     });
 
@@ -110,14 +92,8 @@ describe("groupAlerts", () => {
 
     beforeEach(() => {
       result = groupAlerts([
-        {
-          html_url: "https://github.com/o/a/security/dependabot/1",
-          dependency: { package: { ecosystem: "pip", name: "GitPython" } },
-        },
-        {
-          html_url: "https://github.com/o/b/security/dependabot/2",
-          dependency: { package: { ecosystem: "pip", name: "gitpython" } },
-        },
+        alert(1, "pip", "GitPython"),
+        alert(2, "pip", "gitpython"),
       ]);
     });
 

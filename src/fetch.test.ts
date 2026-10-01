@@ -6,6 +6,7 @@ import type { Alert } from "./group.ts";
 const alert = (id: number): Alert => ({
   html_url: `https://github.com/o/a/security/dependabot/${id}`,
   dependency: { package: { ecosystem: "npm", name: "lodash" } },
+  security_advisory: { severity: "low" },
 });
 
 describe("fetchAlerts", () => {
