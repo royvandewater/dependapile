@@ -43,6 +43,10 @@ describe("renderReport", () => {
       );
     });
 
+    it("includes a theme toggle", () => {
+      assert.match(html, /<button[^>]*data-theme-toggle[^>]*>/);
+    });
+
     it("includes a copy button", () => {
       assert.match(html, /<button[^>]*>Copy URLs<\/button>/);
     });

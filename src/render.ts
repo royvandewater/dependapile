@@ -29,6 +29,9 @@ const renderGroup = (group: PackageGroup, index: number): string => `
       <pre id="urls-${index}" hidden>${escapeHtml(group.urls.join("\n"))}</pre>
     </li>`;
 
+const DARK_THEME =
+  "--bg: #0d1117; --fg: #e6edf3; --muted: #8b949e; --card: #161b22; --border: #30363d; --accent: #2f81f7; --accent-fg: #fff; --critical: #ff8a80; --critical-bg: #3d1614; --high: #ffb27a; --high-bg: #3a2312; --medium: #e8c95a; --medium-bg: #332a0c; --low: #b1b8c0; --low-bg: #262c33;";
+
 export const renderReport = (org: string, groups: PackageGroup[]): string => {
   const total = groups.reduce((sum, group) => sum + group.urls.length, 0);
   return `<!doctype html>
@@ -37,14 +40,22 @@ export const renderReport = (org: string, groups: PackageGroup[]): string => {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dependabot Alerts</title>
+  <script data-theme-init>
+    try {
+      const theme = localStorage.getItem("theme");
+      if (theme) document.documentElement.dataset.theme = theme;
+    } catch {}
+  </script>
   <style>
     :root { --bg: #fafafa; --fg: #1a1a1a; --muted: #666; --card: #fff; --border: #e2e2e2; --accent: #0969da; --accent-fg: #fff; --critical: #b3261e; --critical-bg: #fde7e5; --high: #a8470a; --high-bg: #fdebdc; --medium: #7a5c00; --medium-bg: #fbf1cc; --low: #555; --low-bg: #ececec; }
     @media (prefers-color-scheme: dark) {
-      :root { --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e; --card: #161b22; --border: #30363d; --accent: #2f81f7; --accent-fg: #fff; --critical: #ff8a80; --critical-bg: #3d1614; --high: #ffb27a; --high-bg: #3a2312; --medium: #e8c95a; --medium-bg: #332a0c; --low: #b1b8c0; --low-bg: #262c33; }
+      :root:not([data-theme="light"]) { ${DARK_THEME} }
     }
+    :root[data-theme="dark"] { ${DARK_THEME} }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 32px 16px; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
     main { max-width: 760px; margin: 0 auto; }
+    header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     h1 { margin: 0 0 4px; font-size: 24px; }
     .summary { margin: 0 0 24px; color: var(--muted); }
     ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -61,16 +72,41 @@ export const renderReport = (org: string, groups: PackageGroup[]): string => {
     .low { color: var(--low); background: var(--low-bg); }
     button { flex-shrink: 0; padding: 6px 12px; border: 0; border-radius: 6px; background: var(--accent); color: var(--accent-fg); font: inherit; font-size: 13px; cursor: pointer; }
     button.copied { opacity: 0.7; }
+    button.theme-toggle { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
   </style>
 </head>
 <body>
   <main>
-    <h1>${escapeHtml(org)} Dependabot alerts</h1>
-    <p class="summary">${pluralize(total)} across ${groups.length} packages</p>
+    <header>
+      <div>
+        <h1>${escapeHtml(org)} Dependabot alerts</h1>
+        <p class="summary">${pluralize(total)} across ${groups.length} packages</p>
+      </div>
+      <button type="button" class="theme-toggle" data-theme-toggle>Toggle theme</button>
+    </header>
     <ul>${groups.map(renderGroup).join("")}
     </ul>
   </main>
   <script type="module">
+    const root = document.documentElement;
+    const toggle = document.querySelector("button[data-theme-toggle]");
+    const systemDark = matchMedia("(prefers-color-scheme: dark)");
+    const currentTheme = () =>
+      root.dataset.theme ?? (systemDark.matches ? "dark" : "light");
+    const label = () => {
+      toggle.textContent = currentTheme() === "dark" ? "Light mode" : "Dark mode";
+    };
+    label();
+    systemDark.addEventListener("change", label);
+    toggle.addEventListener("click", () => {
+      const theme = currentTheme() === "dark" ? "light" : "dark";
+      root.dataset.theme = theme;
+      try {
+        localStorage.setItem("theme", theme);
+      } catch {}
+      label();
+    });
+
     for (const button of document.querySelectorAll("button[data-target]")) {
       button.addEventListener("click", async () => {
         const urls = document.getElementById(button.dataset.target).textContent;
